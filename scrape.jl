@@ -58,7 +58,7 @@ function downloadtracks(tracks::Array)
   end
 end
 
-# Get public favorites for user
+# Return an array of track objects representing all favorites by user
 function userfavorites(userid::Integer)
   println("Getting user favourites")
   req = get(baseapi*"/users/"*string(userid)*"/favorites", query = Dict("client_id" => clientid, "linked_partitioning" => "1"))
@@ -66,13 +66,8 @@ function userfavorites(userid::Integer)
   favorites = getlinkedpartition(res, [])
   return favorites
 end
-# # Download all artwork from favorites array
-# function downloadfavoritesartwork(favorites::Array)
-#
-#   downloadtracks(favorites)
-# end
 
-# Get public playlists for user
+# Return an array of playlist objects representing all playlists by user
 function userplaylists(userid::Integer)
   println("Getting user playlists")
   req = get(baseapi*"/users/"*string(userid)*"/playlists", query = Dict("client_id" => clientid, "linked_partitioning" => "1"))
@@ -80,7 +75,7 @@ function userplaylists(userid::Integer)
   playlists = getlinkedpartition(res, [])
   return playlists
 end
-# Get public playlists for user
+# Given an array of playlist objects, return playlists that match some format
 function sortplaylists(playlists::Array, format::Regex)
   weeklyplaylists = filter(pl -> ismatch(format, pl["title"]), playlists)
   duration = mapreduce(pl -> pl["duration"], +, 0, weeklyplaylists)
@@ -88,28 +83,19 @@ function sortplaylists(playlists::Array, format::Regex)
   println("Total number of hours: $(duration/1000/60/60)")
   return weeklyplaylists
 end
-# Download all artwork from playlist object
+# Given a playlist object, downloads all track artwork
 function downloadplaylistartwork(playlist::Dict)
   title = playlist["title"]
-  # try
-  #   mkdir("temp/$(title)")
-  # catch
-  #   rm("temp/$(title)", recursive=true)
-  #   mkdir("temp/$(title)")
-  # end
-  # currdir = pwd()
-  # cd("temp/$(title)")
   playlisttracks = playlist["tracks"]
   println("Downloading $(length(playlisttracks)) artwork from $(title)")
   downloadtracks(playlisttracks)
-  # cd(currdir)
 end
 
-# Put it all together
-# function scrapefavorites(userid::Integer)
-#   favorites = userfavorites(userid)
-#   downloadtracks(favorites)
-# end
+# PUT IT ALL TOGETHER TO SCRAPE SOUNDCLOUD
+function scrapefavorites(userid::Integer)
+  favorites = userfavorites(userid)
+  downloadtracks(favorites)
+end
 function scrapeplaylists(userid::Integer, format::Regex=r"")
   playlists = userplaylists(userid)
   if isequal(userid, 49699208)
@@ -135,8 +121,7 @@ function runscrape()
   if dlfavorites
     mkdir("favorites")
     cd("favorites")
-    favorites = userfavorites(userid)
-    downloadtracks(favorites)
+    scrapefavorites(userid)
     cd("..")
   end
   if dlplaylists
