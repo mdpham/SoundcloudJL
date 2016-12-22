@@ -1,33 +1,8 @@
 include("scrape.jl")
 include("collage.jl")
+include("util.jl")
 
 cwd = pwd()
-
-function setup()
-  config = getconfig()
-  xdim = config["xdim"]
-  ydim = config["ydim"]
-  imgwidth = 100
-  userurl = config["userurl"]
-
-  @printf("Starting Soundcloud artwork collage:\n")
-  @printf("\t%s\n", userurl)
-
-  userid = resolveuser(userurl)
-
-  @printf("\t...resolved userid: %i\n", userid)
-  @printf("\t%i wide %i tall collage with tile size %s\n", xdim, ydim, imgwidth)
-
-  try
-    mkdir("temp")
-  catch
-    rm("temp", recursive=true)
-    mkdir("temp")
-  end
-  cd("temp")
-end
-
-setup()
 
 function buildfavoritescollage()
   @printf("Building favorites collage\n")
@@ -53,9 +28,28 @@ function buildplaylistscollage()
   @printf("\tDone\n")
 end
 
+config = getconfig()
+xdim = config["xdim"] # Number of tiles in horizontal direction
+ydim = config["ydim"] # Number of tiles in vertical direction
+imgwidth = 100 # Default resolution from API is 'large' i.e. 100x100
+userurl = config["userurl"]
+@printf("Starting Soundcloud artwork collage:\n")
+@printf("\t%s\n", userurl)
+userid = resolveuser(userurl)
+@printf("\t...resolved userid: %i\n", userid)
+@printf("\t%i wide %i tall collage with tile size %s\n", xdim, ydim, imgwidth)
+
+try
+  mkdir("temp")
+catch
+  rm("temp", recursive=true)
+  mkdir("temp")
+end
+cd("temp")
+
 if config["favorites"]
   buildfavoritescollage()
 end
 if config["playlists"]
-  buildplaylistscollage(
+  buildplaylistscollage()
 end

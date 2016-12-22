@@ -3,8 +3,6 @@ import Requests: get
 
 using JSON
 
-include("util.jl")
-
 clientid = "da6d5e5415582a69b4dc18c5f8d58e2e"
 baseapi = "http://api.soundcloud.com"
 
@@ -20,8 +18,8 @@ end
 function getlinkedpartition(res::Dict, collection::Array)
   nextcollection = res["collection"]
   push!(collection, nextcollection...)
-  if haskey(res, "next_href")
-  # if false
+  # if haskey(res, "next_href")
+  if false
     @printf("\t...\n")
     req = Requests.get(res["next_href"])
     res = Requests.json(req)
@@ -92,7 +90,7 @@ function scrapeplaylists(userid::Integer, format::Regex=r"")
   end
   weeklyplaylists = sortplaylists(playlists, format)
   cd("playlists")
-  for playlist in weeklyplaylists
+  for playlist in weeklyplaylists[1:2]
     title = playlist["title"]
     playlisttracks = playlist["tracks"]
     @printf("\tDownloading %i images from %s\n", length(playlisttracks), title)
