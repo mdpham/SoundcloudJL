@@ -20,13 +20,14 @@ end
 function getlinkedpartition(res::Dict, collection::Array)
   nextcollection = res["collection"]
   push!(collection, nextcollection...)
-  # if haskey(res, "next_href")
-  if false
-    println("...")
+  if haskey(res, "next_href")
+  # if false
+    @printf("\t...\n")
     req = Requests.get(res["next_href"])
     res = Requests.json(req)
     return getlinkedpartition(res, collection)
   else
+    @printf("\t...total objects found: %i\n", length(collection))
     return collection
   end
 end
@@ -53,7 +54,7 @@ end
 
 # Return an array of track objects representing all favorites by user
 function userfavorites(userid::Integer)
-  # println("Getting user favourites")
+  @printf("\tConnecting to Soundcloud for favorites\n")
   req = Requests.get(baseapi*"/users/"*string(userid)*"/favorites", query = Dict("client_id" => clientid, "linked_partitioning" => "1"))
   res = Requests.json(req)
   favorites = getlinkedpartition(res, [])
@@ -62,7 +63,7 @@ end
 
 # Return an array of playlist objects representing all playlists by user
 function userplaylists(userid::Integer)
-  # println("Getting user playlists")
+  @printf("\tConnecting to Soundcloud for playlists\n")
   req = Requests.get(baseapi*"/users/"*string(userid)*"/playlists", query = Dict("client_id" => clientid, "linked_partitioning" => "1"))
   res = Requests.json(req)
   playlists = getlinkedpartition(res, [])
@@ -86,6 +87,7 @@ function scrapeplaylists(userid::Integer, format::Regex=r"")
   playlists = userplaylists(userid)
   if isequal(userid, 49699208)
     # println("Downloading phamartin ($(userid)) formatted weekly playlists")
+    @printf("phamartin\n")
     format = r"\[[0-9]{2}\.[0-9]{2}\.[0-9]{2}\]"
   end
   weeklyplaylists = sortplaylists(playlists, format)
@@ -93,8 +95,7 @@ function scrapeplaylists(userid::Integer, format::Regex=r"")
   for playlist in weeklyplaylists
     title = playlist["title"]
     playlisttracks = playlist["tracks"]
-    # println("Downloading $(length(playlisttracks)) artwork from $(title)")
-    # cd(() -> downloadtracks(playlisttracks), "playlists")
+    @printf("\tDownloading %i images from %s\n", length(playlisttracks), title)
     downloadtracks(playlisttracks)
   end
   cd("..")

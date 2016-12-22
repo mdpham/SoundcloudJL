@@ -25,6 +25,7 @@ end
 # Number of images in array should be more than Collage.xdim*Collage.ydim
 # If not, repeats tiles (idea: fill with colors once Hilbert path figured out)
 function fill_collage(collage::Collage, tiles::Array)
+  @printf("\tConcatenating images into collage\n")
   while collage.xdim*collage.ydim < length(tiles)
     tiles = tiles[1:(collage.xdim*collage.ydim)]
   end
@@ -55,5 +56,6 @@ function gettempartwork(dir::AbstractString)
   end
   cd(() -> getdirdata(), dir)
   shuffle!(images)
+  @printf("\t...total downloaded: %i\n", length(images))
   return images
 end
