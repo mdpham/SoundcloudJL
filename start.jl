@@ -3,31 +3,33 @@ include("collage.jl")
 
 cwd = pwd()
 
+function setup()
+  config = getconfig()
+  xdim = config["xdim"]
+  ydim = config["ydim"]
+  imgwidth = 100
+  userurl = config["userurl"]
 
+  @printf("Starting Soundcloud artwork collage:\n")
+  @printf("\t%s\n", userurl)
 
-config = getconfig()
-xdim = config["xdim"]
-ydim = config["ydim"]
-imgwidth = 100
-userurl = config["userurl"]
+  userid = resolveuser(userurl)
 
-@printf("Starting Soundcloud artwork collage:\n")
-@printf("\t%s\n", userurl)
+  @printf("\t...resolved userid: %i\n", userid)
+  @printf("\t%i wide %i tall collage with tile size %s\n", xdim, ydim, imgwidth)
 
-userid = resolveuser(userurl)
-
-@printf("\t...resolved userid: %i\n", userid)
-@printf("\t%i wide %i tall collage with tile size %s\n", xdim, ydim, imgwidth)
-
-try
-  mkdir("temp")
-catch
-  rm("temp", recursive=true)
-  mkdir("temp")
+  try
+    mkdir("temp")
+  catch
+    rm("temp", recursive=true)
+    mkdir("temp")
+  end
+  cd("temp")
 end
-cd("temp")
 
-if config["favorites"]
+setup()
+
+function buildfavoritescollage()
   @printf("Building favorites collage\n")
   mkdir("favorites")
   scrapefavorites(userid)
@@ -38,7 +40,8 @@ if config["favorites"]
   Images.save("$(cwd)/favorites.jpg", output)
   @printf("\tDone\n")
 end
-if config["playlists"]
+
+function buildplaylistscollage()
   @printf("Building playlists collage\n")
   mkdir("playlists")
   scrapeplaylists(userid)
@@ -48,4 +51,11 @@ if config["playlists"]
   output = Image(collage.data')
   Images.save("$(cwd)/playlist.jpg", output)
   @printf("\tDone\n")
+end
+
+if config["favorites"]
+  buildfavoritescollage()
+end
+if config["playlists"]
+  buildplaylistscollage(
 end
